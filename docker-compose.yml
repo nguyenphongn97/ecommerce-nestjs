@@ -1,0 +1,23 @@
+services:
+  mongoDB:
+    image: mongo:5.0.15
+    environment:
+      MONGO_URI: "mongodb+srv://nguyenphongn0997:xkyG5vKJuFjPizqh@webadmin.1yai2.mongodb.net/?retryWrites=true&w=majority&appName=webadmin"
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data_container:/data/db
+
+volumes:
+  mongodb_data_container:
+
+  # docker compose -p webadmin-mongodb-4rn up-d
+
+  # mongodb atlas
+  # nguyenphongn0997
+  # xkyG5vKJuFjPizqh
+
+  #Use db local
+  #mongodb://<username>:<password>@localhost:27017/<dbname>?authSource=admin
+
+  # npm i --save-exact @nestjs/mongoose@10.0.10 mongoose@8.5.1
