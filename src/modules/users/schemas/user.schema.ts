@@ -23,21 +23,20 @@ export class User {
     @Prop()
     image: string;
 
-    @Prop()
+    @Prop({default: "USER"})
     role: string;
 
-    @Prop()
+    @Prop({default: "LOCAL"})
     accountType: string;
 
-    @Prop()
-    isActive: string;
+    @Prop({default: false})
+    isActive: boolean;
 
     @Prop()
     codeId: string;
 
     @Prop()
     codeExpired: Date;
-
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
