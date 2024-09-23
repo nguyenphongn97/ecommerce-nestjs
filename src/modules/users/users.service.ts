@@ -7,6 +7,9 @@ import { Model } from 'mongoose';
 import { hashPasswordHelper } from '@/helpers/utils';
 import aqp from 'api-query-params';
 import mongoose from "mongoose";
+import { RegisterDto } from '@/auth/dto/register.dto';
+import { v4 as uuidv4 } from 'uuid';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class UsersService {
@@ -68,7 +71,7 @@ export class UsersService {
     return `This action returns a #${id} user`;
   }
 
-  async findByEmail(email: string){
+  async findByEmail(email: string) {
     return await this.userModel.findOne({ email })
   }
 
@@ -86,9 +89,33 @@ export class UsersService {
   }
 
   async remove(_id: string) {
-    if(mongoose.isValidObjectId(_id)){
+    if (mongoose.isValidObjectId(_id)) {
       return this.userModel.deleteOne({ _id })
     }
     throw new BadRequestException('Id không đúng định dạng')
+  }
+
+  async handleRegister(registerDto: RegisterDto) {
+    const { name, email, password } = registerDto
+
+    //check email
+    const isExist = await this.isEmailExist(email);
+    if (isExist) {
+      throw new BadRequestException(`Email đã tồn tại: ${email}. Vui lòng sử dụng email khác.`)
+    }
+
+    //hash password with bcrypt
+    const hashPassword = await hashPasswordHelper(password);
+    const user = await this.userModel.create({
+      name, email, password: hashPassword, isActive: false, codeId: uuidv4(), codeExpired: dayjs().add(60, 'minutes')
+    })
+
+    //return response
+    return {
+      _id: user._id
+    }
+
+    //send email
+
   }
 }
