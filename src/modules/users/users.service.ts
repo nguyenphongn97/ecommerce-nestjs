@@ -6,26 +6,27 @@ import { User } from './schemas/user.schema';
 import { Model } from 'mongoose';
 import { hashPasswordHelper } from '@/helpers/utils';
 import aqp from 'api-query-params';
+import mongoose from "mongoose";
 
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(User.name)
   private userModel: Model<User>
 
-  ) {}
-  
-  isEmailExist = async(email: String) => {
-    const user = await this.userModel.exists({email})
-    if(user) return true
+  ) { }
+
+  isEmailExist = async (email: String) => {
+    const user = await this.userModel.exists({ email })
+    if (user) return true
     return false
   }
-  
+
   async create(createUserDto: CreateUserDto) {
-    const {name, email, password} = createUserDto
+    const { name, email, password } = createUserDto
 
     //check email
     const isExist = await this.isEmailExist(email);
-    if(isExist){
+    if (isExist) {
       throw new BadRequestException(`Email đã tồn tại: ${email}. Vui lòng sử dụng email khác.`)
     }
 
@@ -41,12 +42,12 @@ export class UsersService {
   }
 
   async findAll(query: string, current: number, pageSize: number) {
-    const {filter, sort} = aqp(query);
-    if(filter.current) delete filter.current;
-    if(filter.pageSize) delete filter.pageSize;
+    const { filter, sort } = aqp(query);
+    if (filter.current) delete filter.current;
+    if (filter.pageSize) delete filter.pageSize;
 
-    if(!current) current = 1
-    if(!pageSize) pageSize = 10
+    if (!current) current = 1
+    if (!pageSize) pageSize = 10
 
     const totalItems = (await this.userModel.find(filter)).length;
     const totalPages = Math.ceil(totalItems / pageSize);
@@ -54,24 +55,40 @@ export class UsersService {
     const skip = (current - 1) * pageSize;
 
     const results = await this.userModel
-    .find(filter)
-    .limit(pageSize)
-    .skip(skip)
-    .select('-password')
-    .sort(sort as any);
+      .find(filter)
+      .limit(pageSize)
+      .skip(skip)
+      .select('-password')
+      .sort(sort as any);
 
-    return {results, totalPages};
+    return { results, totalPages };
   }
 
   findOne(id: number) {
     return `This action returns a #${id} user`;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async findByEmail(email: string){
+    return await this.userModel.findOne({ email })
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async update(updateUserDto: UpdateUserDto) {
+    return await this.userModel.updateOne(
+      {
+        _id: updateUserDto._id,
+        name: updateUserDto.name,
+        phone: updateUserDto.phone,
+        address: updateUserDto.address,
+        image: updateUserDto.image
+      },
+      // {...updateUserDto}
+    )
+  }
+
+  async remove(_id: string) {
+    if(mongoose.isValidObjectId(_id)){
+      return this.userModel.deleteOne({ _id })
+    }
+    throw new BadRequestException('Id không đúng định dạng')
   }
 }
